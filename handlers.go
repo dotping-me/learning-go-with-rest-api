@@ -2,43 +2,44 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"strconv"
 )
 
 // Acts like a simple router in this example
 func handleUserProfile(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		GetUserProfile(w, r) // Redirects to Controller function
+		getUserProfile(w, r) // Redirects to Controller function
 
 	case http.MethodPost:
-		RegisterUserProfile(w, r)
+		registerUserProfile(w, r)
 
 	case http.MethodPatch:
-		UpdateUserProfile(w, r)
+		updateUserProfile(w, r)
 
 	default:
 		http.Error(w, "HTTP Method not allowed!", http.StatusMethodNotAllowed)
 	}
 }
 
-func GetUserProfile(w http.ResponseWriter, r *http.Request) {
-	userProf := r.Context().Value("userProf").(UserProfile) // Casting to UserProfule type at the end
+func getUserProfile(w http.ResponseWriter, r *http.Request) {
 
-	// Prepares Response
-	w.Header().Set("Content-Type", "application/json")
-	res := UserProfile{
-		Id:       userProf.Id,
-		Email:    userProf.Email,
-		Username: userProf.Username,
+	// Query user from database
+	var user UserProfile
+	var reqId = r.URL.Query().Get("id")
+
+	queryResult := DB.First(&user, "id = ?", reqId)
+	if queryResult.Error != nil {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
 	}
 
-	json.NewEncoder(w).Encode(res) // Sends JSON response
+	// Sends JSON response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
 }
 
-func RegisterUserProfile(w http.ResponseWriter, r *http.Request) {
+func registerUserProfile(w http.ResponseWriter, r *http.Request) {
 	var payload UserProfile
 	var err error = json.NewDecoder(r.Body).Decode(&payload)
 	defer r.Body.Close() // Frees up resources
@@ -54,23 +55,28 @@ func RegisterUserProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Makes new database entry
-	newId := "USER" + strconv.Itoa(len(database)+1)
-	database[newId] = UserProfile{
-		Id:       newId,
+	DB.Create(&UserProfile{
 		Email:    payload.Email,
 		Username: payload.Username,
-		Token:    "",
-	}
+	})
 
 	// Sends Response
-	fmt.Println(database)
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Registered Successfully!",
 	})
 }
 
-func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
-	userProf := r.Context().Value("userProf").(UserProfile) // Casting to UserProfule type at the end
+func updateUserProfile(w http.ResponseWriter, r *http.Request) {
+
+	// Query user from database
+	var user UserProfile
+	var reqId = r.URL.Query().Get("id")
+
+	queryResult := DB.First(&user, "id = ?", reqId)
+	if queryResult.Error != nil {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 
 	// Reads JSON body
 	var payload UserProfile
@@ -88,10 +94,10 @@ func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Updates Profile
-	userProf.Email = payload.Email
-	userProf.Username = payload.Username
-	database[userProf.Id] = userProf
+	DB.Save(&UserProfile{
+		Email:    payload.Email,
+		Username: payload.Username,
+	})
 
-	fmt.Println(database[userProf.Id]) // Checks if changes were applied
 	w.WriteHeader(http.StatusOK)
 }

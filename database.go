@@ -1,29 +1,23 @@
-// This is a fake database to speed up prototyping
-// with aim to simulate database interactions
-
 package main
 
-type UserProfile struct {
-	Id       string
-	Email    string
-	Username string
-	Token    string
-}
+import (
+	"log"
 
-// Creates an array storing UserProfile struct instances
-// to simulate database
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+)
 
-var database = map[string]UserProfile{
-	"USER0": {
-		Id:       "USER0",
-		Email:    "example@domain.com",
-		Username: "X_Sample",
-		Token:    "123",
-	},
-	"USER1": {
-		Id:       "USER1",
-		Email:    "second.example@domain.com",
-		Username: ".",
-		Token:    "456",
-	},
+var DB *gorm.DB // Global pointer to database instance
+
+func initDB(dbName string) {
+	var err error
+	DB, err = gorm.Open(sqlite.Open(dbName), &gorm.Config{})
+	if err != nil {
+		log.Fatal("Failed to connect to Database!")
+	}
+
+	err = DB.AutoMigrate(&UserProfile{}) // Migrates data schemas to match models
+	if err != nil {
+		log.Fatal("Failed to mitigate Database!")
+	}
 }
