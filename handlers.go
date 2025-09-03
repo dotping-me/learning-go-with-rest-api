@@ -16,20 +16,16 @@ func handleUserProfile(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		RegisterUserProfile(w, r)
 
+	case http.MethodPatch:
+		UpdateUserProfile(w, r)
+
 	default:
 		http.Error(w, "HTTP Method not allowed!", http.StatusMethodNotAllowed)
 	}
 }
 
 func GetUserProfile(w http.ResponseWriter, r *http.Request) {
-	var userId = r.URL.Query().Get("id")
-	userProf, ok := database[userId] // Database variable is globally available across package main
-
-	// Bad Request
-	if !ok || userId == "" {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
+	userProf := r.Context().Value("userProf").(UserProfile) // Casting to UserProfule type at the end
 
 	// Prepares Response
 	w.Header().Set("Content-Type", "application/json")
@@ -43,8 +39,8 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func RegisterUserProfile(w http.ResponseWriter, r *http.Request) {
-	var userProf UserProfile
-	var err error = json.NewDecoder(r.Body).Decode(&userProf)
+	var payload UserProfile
+	var err error = json.NewDecoder(r.Body).Decode(&payload)
 	defer r.Body.Close() // Frees up resources
 
 	if err != nil {
@@ -52,7 +48,7 @@ func RegisterUserProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userProf.Email == "" || userProf.Username == "" {
+	if payload.Email == "" || payload.Username == "" {
 		http.Error(w, "JSON Body missing important fields", http.StatusBadRequest)
 		return
 	}
@@ -61,8 +57,8 @@ func RegisterUserProfile(w http.ResponseWriter, r *http.Request) {
 	newId := "USER" + strconv.Itoa(len(database)+1)
 	database[newId] = UserProfile{
 		Id:       newId,
-		Email:    userProf.Email,
-		Username: userProf.Username,
+		Email:    payload.Email,
+		Username: payload.Username,
 		Token:    "",
 	}
 
@@ -71,4 +67,31 @@ func RegisterUserProfile(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Registered Successfully!",
 	})
+}
+
+func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
+	userProf := r.Context().Value("userProf").(UserProfile) // Casting to UserProfule type at the end
+
+	// Reads JSON body
+	var payload UserProfile
+	var err error = json.NewDecoder(r.Body).Decode(&payload)
+	defer r.Body.Close()
+
+	if err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	if payload.Email == "" || payload.Username == "" {
+		http.Error(w, "JSON Body missing important fields", http.StatusBadRequest)
+		return
+	}
+
+	// Updates Profile
+	userProf.Email = payload.Email
+	userProf.Username = payload.Username
+	database[userProf.Id] = userProf
+
+	fmt.Println(database[userProf.Id]) // Checks if changes were applied
+	w.WriteHeader(http.StatusOK)
 }

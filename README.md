@@ -34,5 +34,5 @@ Follow these steps to get your development environment set up and operational:
 
 4. **Test Routes**
     ```bash
-    curl http://localhost:8000/user/profile?id=USER0
+    curl -H "Authorization: Bearer 123" "http://localhost:8000/user/profile?id=USER0"
     ```
