@@ -68,7 +68,6 @@ func RegisterUserProfile(w http.ResponseWriter, r *http.Request) {
 
 	// Sends Response
 	fmt.Println(database)
-
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Registered Successfully!",
 	})

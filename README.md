@@ -8,7 +8,11 @@ This project used the video below as base foundation:
 This project also uses a Flat Project Structure to minimise complexity for now. Read more on GO Project Structures here:  
 [Go - The Ultimate Folder Structure](https://dev.to/ayoubzulfiqar/go-the-ultimate-folder-structure-6gj)
 
-## ⚙ Setup & Usage
+## ⚙ Prerequisites
+- Go 1.22+   
+[Install Go Here!](https://golang.org/dl/)
+
+## 💻 Setup & Usage
 Follow these steps to get your development environment set up and operational:  
 
 1. **Clone the Repository**  
@@ -17,9 +21,18 @@ Follow these steps to get your development environment set up and operational:
 
     cd learning-go-with-rest-api
     ```
-2. Run GO API
+
+2. **Install GO dependencies**
+   ```bash
+   go mod tidy
+   ```
+
+3. **Run GO API**
    ```bash
    go run .
    ```
 
-   *Repo uses built-in dependencies for now*
+4. **Test Routes**
+    ```bash
+    curl http://localhost:8000/user/profile?id=USER0
+    ```
