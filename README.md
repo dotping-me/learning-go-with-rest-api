@@ -38,7 +38,9 @@ Follow these steps to get your development environment set up and operational:
    go run .
    ```
 
-4. **Test Routes**
-    ```bash
-    curl http://localhost:8000/user/1
-    ```
+4. **Test Routes** (Use `curl`, Postman or any alternatives)
+   1. Register a user through a `POST` request on `/user`
+   2. Login using credentials on `/login`
+      1. Copy generated token
+   3. Test other routes
+      1. Insert token as `Bearer Token` in `Auth` Headers 

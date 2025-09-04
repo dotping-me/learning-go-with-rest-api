@@ -27,8 +27,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	// Initialises Database
-	initDB(os.Getenv("DB_NAME"))
+	initDB(os.Getenv("DB_NAME")) // Initialises Database
 
 	// Starts Gin router
 	port := os.Getenv("PORT")
@@ -40,12 +39,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Registers routes
-	router.GET("/user/:id", getUserProfile)
+	// Using JWT auth
+	jwtMiddleware := initJWTMiddleware()
+	router.POST("/login", jwtMiddleware.LoginHandler)
 	router.POST("/user", registerUserProfile)
-	router.PATCH("/user/:id", updateUserProfile)
-	router.DELETE("/user/:id", deleteUserProfile)
+
+	// Groups similar routes together and wraps them with JWT auth
+	auth := router.Group("/user")
+	auth.Use(jwtMiddleware.MiddlewareFunc())
+	{
+		auth.GET("/:id", getUserProfile)
+		auth.PATCH("/:id", updateUserProfile)
+		auth.DELETE("/:id", deleteUserProfile)
+	}
 
 	router.Run("localhost:" + port)
-	log.Println("Server is listening on localhost:", port)
 }
