@@ -1,6 +1,5 @@
 /*
 Next Steps:
-- Switch to Postgres
 - Organise Project Structure
 - Implement Users, Posts, Comments and so on
 - Dockerise everything!!!

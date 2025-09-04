@@ -7,7 +7,6 @@ CREATE DATABASE learn_go;
 -- 3. Create the UserProfile table
 CREATE TABLE IF NOT EXISTS "user_profiles" (
     id       SERIAL       PRIMARY KEY,
-    email    VARCHAR(255) NOT NULL UNIQUE,
-    username VARCHAR(100) NOT NULL,
+    username VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL
 );

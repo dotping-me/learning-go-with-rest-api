@@ -36,14 +36,13 @@ func registerUserProfile(c *gin.Context) {
 		return
 	}
 
-	if payload.Email == "" || payload.Username == "" || payload.Password == "" {
+	if payload.Username == "" || payload.Password == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON Body missing some fields"})
 		return
 	}
 
 	// Makes new database entry
 	DB.Create(&UserProfile{
-		Email:    payload.Email,
 		Username: payload.Username,
 		Password: payload.Password,
 	})
@@ -75,13 +74,12 @@ func updateUserProfile(c *gin.Context) {
 		return
 	}
 
-	if payload.Email == "" || payload.Username == "" || payload.Password == "" {
+	if payload.Username == "" || payload.Password == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON Body missing some fields"})
 		return
 	}
 
 	// Updates Profile
-	user.Email = payload.Email
 	user.Username = payload.Username
 	user.Password = payload.Password
 

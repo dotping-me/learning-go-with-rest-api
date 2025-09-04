@@ -22,7 +22,7 @@ func initJWTMiddleware() *jwt.GinJWTMiddleware {
 		// Auth on Login
 		Authenticator: func(c *gin.Context) (interface{}, error) {
 			var login struct {
-				Email    string `json:"email"`
+				Username string `json:"username"`
 				Password string `json:"password"`
 			}
 
@@ -32,10 +32,10 @@ func initJWTMiddleware() *jwt.GinJWTMiddleware {
 			}
 
 			// Query database
-			email := login.Email
+			uname := login.Username
 
 			var user UserProfile
-			queryResult := DB.First(&user, "email = ?", email)
+			queryResult := DB.First(&user, "username = ?", uname)
 			if queryResult.Error != nil {
 				return nil, jwt.ErrFailedAuthentication
 			}
@@ -52,11 +52,11 @@ func initJWTMiddleware() *jwt.GinJWTMiddleware {
 		// State what the token will contain
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
 			if v, ok := data.(*struct {
-				Email    string
+				Username string
 				Password string
 			}); ok {
 				return jwt.MapClaims{
-					"id": v.Email,
+					"id": v.Username,
 				}
 			}
 			return jwt.MapClaims{}
