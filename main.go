@@ -1,6 +1,5 @@
 /*
 Next Steps:
-- Adding JWT or OAuth2 user authentication
 - Switch to Postgres
 - Organise Project Structure
 - Implement Users, Posts, Comments and so on
@@ -27,7 +26,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	initDB(os.Getenv("DB_NAME")) // Initialises Database
+	initDB() // Initialises Database
 
 	// Starts Gin router
 	port := os.Getenv("PORT")

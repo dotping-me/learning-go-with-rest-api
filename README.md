@@ -13,10 +13,8 @@ This project also uses a Flat Project Structure to minimise complexity for now. 
 - **Go 1.22+**  
 [Install Go Here!](https://golang.org/dl/)
 
-- **GCC (C Compiler) for SQLite Driver**  
-[Download GCC Here!](https://www.mingw-w64.org/downloads/#mingw-w64-builds)
-
-  - Extract and add the `bin/` folder (e.g. `C:\mingw64\bin`) to your System Path.
+- **PostgreSQL**  
+[Install PostgreSQL Here!](https://www.postgresql.org/download/)
 
 ## 💻 Setup & Usage
 Follow these steps to get your development environment set up and operational:  
