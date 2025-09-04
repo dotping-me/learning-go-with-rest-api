@@ -1,3 +1,14 @@
+/*
+Next Steps:
+- Adding JWT or OAuth2 user authentication
+- Switch to Postgres
+- Organise Project Structure
+- Implement Users, Posts, Comments and so on
+- Dockerise everything!!!
+
+- Look into MVC Structure and Frontend Integration for later
+*/
+
 package main
 
 import (

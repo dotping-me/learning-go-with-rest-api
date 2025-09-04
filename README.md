@@ -2,8 +2,9 @@
 The aim of this project is to learn GoLang by building a simple REST API.
 
 ## 📚 Resources
-This project used the video below as base foundation:  
-[Building a GO API - No External Packages! by Alex Mux](https://www.youtube.com/watch?v=9bRMLKBbFMQ)
+This project used the videos below as base foundation:  
+- [Building a GO API - No External Packages! by Alex Mux](https://www.youtube.com/watch?v=9bRMLKBbFMQ)
+- [Complete Backend Engineering Course in Go](https://www.youtube.com/watch?v=h3fqD6IprIA)
 
 This project also uses a Flat Project Structure to minimise complexity for now. Read more on GO Project Structures here:  
 [Go - The Ultimate Folder Structure](https://dev.to/ayoubzulfiqar/go-the-ultimate-folder-structure-6gj)
@@ -39,5 +40,5 @@ Follow these steps to get your development environment set up and operational:
 
 4. **Test Routes**
     ```bash
-    curl -H "Authorization: Bearer 123" "http://localhost:8000/user/profile?id=USER0"
+    curl http://localhost:8000/user/1
     ```
