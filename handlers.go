@@ -1,56 +1,41 @@
 package main
 
 import (
-	"encoding/json"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-// Acts like a simple router in this example
-func handleUserProfile(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		getUserProfile(w, r) // Redirects to Controller function
-
-	case http.MethodPost:
-		registerUserProfile(w, r)
-
-	case http.MethodPatch:
-		updateUserProfile(w, r)
-
-	default:
-		http.Error(w, "HTTP Method not allowed!", http.StatusMethodNotAllowed)
-	}
-}
-
-func getUserProfile(w http.ResponseWriter, r *http.Request) {
-
-	// Query user from database
-	var user UserProfile
-	var reqId = r.URL.Query().Get("id")
-
-	queryResult := DB.First(&user, "id = ?", reqId)
-	if queryResult.Error != nil {
-		http.Error(w, "Forbidden", http.StatusForbidden)
+func getUserProfile(c *gin.Context) {
+	reqId := c.Query("id")
+	if reqId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing User ID"})
 		return
 	}
 
-	// Sends JSON response
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	// Query user from database
+	var user UserProfile
+	queryResult := DB.First(&user, "id = ?", reqId)
+	if queryResult.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user) // Sends JSON response
 }
 
-func registerUserProfile(w http.ResponseWriter, r *http.Request) {
+func registerUserProfile(c *gin.Context) {
 	var payload UserProfile
-	var err error = json.NewDecoder(r.Body).Decode(&payload)
-	defer r.Body.Close() // Frees up resources
 
+	// Reads JSON Body
+	var err error = c.ShouldBindJSON(&payload)
 	if err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
 		return
 	}
 
 	if payload.Email == "" || payload.Username == "" {
-		http.Error(w, "JSON Body missing important fields", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON Body missing some fields"})
 		return
 	}
 
@@ -60,44 +45,46 @@ func registerUserProfile(w http.ResponseWriter, r *http.Request) {
 		Username: payload.Username,
 	})
 
-	// Sends Response
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Registered Successfully!",
-	})
+	c.JSON(http.StatusOK, gin.H{"message": "Registered Successfully"})
 }
 
-func updateUserProfile(w http.ResponseWriter, r *http.Request) {
+func updateUserProfile(c *gin.Context) {
+	reqId := c.Query("id")
+	if reqId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing User ID"})
+		return
+	}
 
 	// Query user from database
 	var user UserProfile
-	var reqId = r.URL.Query().Get("id")
-
 	queryResult := DB.First(&user, "id = ?", reqId)
 	if queryResult.Error != nil {
-		http.Error(w, "Forbidden", http.StatusForbidden)
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
 	// Reads JSON body
 	var payload UserProfile
-	var err error = json.NewDecoder(r.Body).Decode(&payload)
-	defer r.Body.Close()
-
+	var err error = c.ShouldBindJSON(&payload)
 	if err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
 		return
 	}
 
 	if payload.Email == "" || payload.Username == "" {
-		http.Error(w, "JSON Body missing important fields", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON Body missing some fields"})
 		return
 	}
 
 	// Updates Profile
-	DB.Save(&UserProfile{
-		Email:    payload.Email,
-		Username: payload.Username,
-	})
+	user.Email = payload.Email
+	user.Username = payload.Username
 
-	w.WriteHeader(http.StatusOK)
+	err = DB.Save(&user).Error
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update User"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Updated Successfully"})
 }
