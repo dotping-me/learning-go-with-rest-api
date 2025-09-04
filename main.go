@@ -23,10 +23,17 @@ func main() {
 	port := os.Getenv("PORT")
 	router := gin.Default()
 
+	// Set trusted IPs
+	err = router.SetTrustedProxies([]string{"127.0.0.1"})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Registers routes
-	router.GET("/user/profile", getUserProfile)
-	router.POST("/user/profile", registerUserProfile)
-	router.PATCH("/user/profile", updateUserProfile)
+	router.GET("/user/:id", getUserProfile)
+	router.POST("/user", registerUserProfile)
+	router.PATCH("/user/:id", updateUserProfile)
+	router.DELETE("/user/:id", deleteUserProfile)
 
 	router.Run("localhost:" + port)
 	log.Println("Server is listening on localhost:", port)

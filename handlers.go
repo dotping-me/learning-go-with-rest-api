@@ -6,8 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Gets the profile of a user
 func getUserProfile(c *gin.Context) {
-	reqId := c.Query("id")
+	reqId := c.Param("id")
 	if reqId == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing User ID"})
 		return
@@ -24,6 +25,7 @@ func getUserProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, user) // Sends JSON response
 }
 
+// Registers a new user
 func registerUserProfile(c *gin.Context) {
 	var payload UserProfile
 
@@ -48,8 +50,9 @@ func registerUserProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Registered Successfully"})
 }
 
+// Updates data for an already existing user
 func updateUserProfile(c *gin.Context) {
-	reqId := c.Query("id")
+	reqId := c.Param("id")
 	if reqId == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing User ID"})
 		return
@@ -87,4 +90,30 @@ func updateUserProfile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Updated Successfully"})
+}
+
+// Deletes a user
+func deleteUserProfile(c *gin.Context) {
+	reqId := c.Param("id")
+	if reqId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing User ID"})
+		return
+	}
+
+	// Query user from database
+	var user UserProfile
+	queryResult := DB.First(&user, "id = ?", reqId)
+	if queryResult.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Deletes user
+	var err error = DB.Delete(&user).Error
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete User"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Deleted Successfully"})
 }
