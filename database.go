@@ -27,7 +27,8 @@ func initDB() {
 		log.Fatal("Failed to connect to Database!")
 	}
 
-	err = DB.AutoMigrate(&UserProfile{}) // Migrates data schemas to match models
+	// Migrates data schemas to match models
+	err = DB.AutoMigrate(&UserProfile{}, &Post{}, &Comment{})
 	if err != nil {
 		log.Fatal("Failed to mitigate Database!")
 	}

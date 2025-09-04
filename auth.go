@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strconv"
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
@@ -40,31 +41,51 @@ func initJWTMiddleware() *jwt.GinJWTMiddleware {
 				return nil, jwt.ErrFailedAuthentication
 			}
 
-			// Compares passwords
-			pswrd := login.Password
-			if pswrd == user.Password {
-				return &login, nil
+			// Passwords doesn't match
+			if login.Password != user.Password {
+				return nil, jwt.ErrFailedAuthentication
 			}
 
-			return nil, jwt.ErrFailedAuthentication
+			return &user, nil
 		},
 
 		// State what the token will contain
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
-			if v, ok := data.(*struct {
-				Username string
-				Password string
-			}); ok {
+			if user, ok := data.(*UserProfile); ok {
 				return jwt.MapClaims{
-					"id": v.Username,
+					"id": user.ID, // Successful
 				}
 			}
-			return jwt.MapClaims{}
+
+			return jwt.MapClaims{} // Failed
 		},
 
 		// Unautherized
 		Unauthorized: func(c *gin.Context, code int, message string) {
 			c.JSON(code, gin.H{"error": message})
+		},
+
+		IdentityHandler: func(c *gin.Context) interface{} {
+			claims := jwt.ExtractClaims(c)
+			idRaw, ok := claims["id"]
+			if !ok || idRaw == nil {
+				return nil
+			}
+
+			switch v := idRaw.(type) {
+			case float64:
+				return uint(v)
+
+			case string:
+				idInt, err := strconv.ParseUint(v, 10, 64)
+				if err != nil {
+					return nil
+				}
+
+				return uint(idInt)
+			}
+
+			return nil
 		},
 	})
 

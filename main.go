@@ -43,12 +43,18 @@ func main() {
 	router.POST("/user", registerUserProfile)
 
 	// Groups similar routes together and wraps them with JWT auth
-	auth := router.Group("/user")
+	auth := router.Group("/")
 	auth.Use(jwtMiddleware.MiddlewareFunc())
 	{
-		auth.GET("/:id", getUserProfile)
-		auth.PATCH("/:id", updateUserProfile)
-		auth.DELETE("/:id", deleteUserProfile)
+		// User routes
+		auth.GET("/user/:id", getUserProfile)
+		auth.PATCH("/user/:id", updateUserProfile)
+		auth.DELETE("/user/:id", deleteUserProfile)
+
+		// Post routes
+		auth.POST("/p", createPost)
+		auth.GET("/p/:id", getPost)
+		auth.DELETE("p/:id", deletePost)
 	}
 
 	router.Run("localhost:" + port)
