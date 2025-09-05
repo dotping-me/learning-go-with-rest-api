@@ -1,18 +1,26 @@
-package main
+/*
+
+Using JWT Tokens to authenticate requests
+- JWT Token will store the ID of the user as "id"
+
+*/
+
+package middleware
 
 import (
 	"log"
-	"strconv"
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
+	"github.com/dotping-me/learning-go-with-rest-api/data"
+	"github.com/dotping-me/learning-go-with-rest-api/models"
 	"github.com/gin-gonic/gin"
 )
 
-func initJWTMiddleware() *jwt.GinJWTMiddleware {
+func InitJWT(secret string) *jwt.GinJWTMiddleware {
 	jwtMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
 		Realm:         "example zone",
-		Key:           []byte("secret key"), // change in production
+		Key:           []byte(secret),
 		Timeout:       time.Hour,
 		MaxRefresh:    time.Hour,
 		IdentityKey:   "id",
@@ -35,8 +43,8 @@ func initJWTMiddleware() *jwt.GinJWTMiddleware {
 			// Query database
 			uname := login.Username
 
-			var user UserProfile
-			queryResult := DB.First(&user, "username = ?", uname)
+			var user models.UserProfile
+			queryResult := data.DB.First(&user, "username = ?", uname)
 			if queryResult.Error != nil {
 				return nil, jwt.ErrFailedAuthentication
 			}
@@ -51,7 +59,7 @@ func initJWTMiddleware() *jwt.GinJWTMiddleware {
 
 		// State what the token will contain
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
-			if user, ok := data.(*UserProfile); ok {
+			if user, ok := data.(*models.UserProfile); ok {
 				return jwt.MapClaims{
 					"id": user.ID, // Successful
 				}
@@ -67,24 +75,9 @@ func initJWTMiddleware() *jwt.GinJWTMiddleware {
 
 		IdentityHandler: func(c *gin.Context) interface{} {
 			claims := jwt.ExtractClaims(c)
-			idRaw, ok := claims["id"]
-			if !ok || idRaw == nil {
-				return nil
+			if id, ok := claims["id"].(float64); ok {
+				return uint(id)
 			}
-
-			switch v := idRaw.(type) {
-			case float64:
-				return uint(v)
-
-			case string:
-				idInt, err := strconv.ParseUint(v, 10, 64)
-				if err != nil {
-					return nil
-				}
-
-				return uint(idInt)
-			}
-
 			return nil
 		},
 	})

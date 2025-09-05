@@ -1,4 +1,10 @@
-package main
+/*
+
+Model Schemas
+
+*/
+
+package models
 
 import "time"
 

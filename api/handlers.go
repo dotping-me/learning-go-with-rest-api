@@ -1,16 +1,18 @@
-package main
+package api
 
 import (
 	"net/http"
 	"strconv"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
+	"github.com/dotping-me/learning-go-with-rest-api/data"
+	"github.com/dotping-me/learning-go-with-rest-api/models"
 	"github.com/gin-gonic/gin"
 )
 
 // Registers a new user
 func registerUserProfile(c *gin.Context) {
-	var payload UserProfile
+	var payload models.UserProfile
 
 	// Reads JSON Body
 	var err error = c.ShouldBindJSON(&payload)
@@ -25,7 +27,7 @@ func registerUserProfile(c *gin.Context) {
 	}
 
 	// Makes new database entry
-	err = DB.Create(&UserProfile{
+	err = data.DB.Create(&models.UserProfile{
 		Username: payload.Username,
 		Password: payload.Password,
 	}).Error
@@ -47,8 +49,8 @@ func getUserProfile(c *gin.Context) {
 	}
 
 	// Query user from database
-	var user UserProfile
-	queryResult := DB.First(&user, "id = ?", reqId)
+	var user models.UserProfile
+	queryResult := data.DB.First(&user, "id = ?", reqId)
 	if queryResult.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
@@ -66,15 +68,15 @@ func updateUserProfile(c *gin.Context) {
 	}
 
 	// Query user from database
-	var user UserProfile
-	queryResult := DB.First(&user, "id = ?", reqId)
+	var user models.UserProfile
+	queryResult := data.DB.First(&user, "id = ?", reqId)
 	if queryResult.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
 	// Reads JSON body
-	var payload UserProfile
+	var payload models.UserProfile
 	var err error = c.ShouldBindJSON(&payload)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
@@ -90,7 +92,7 @@ func updateUserProfile(c *gin.Context) {
 	user.Username = payload.Username
 	user.Password = payload.Password
 
-	err = DB.Save(&user).Error
+	err = data.DB.Save(&user).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update User"})
 		return
@@ -108,15 +110,15 @@ func deleteUserProfile(c *gin.Context) {
 	}
 
 	// Query user from database
-	var user UserProfile
-	queryResult := DB.First(&user, "id = ?", reqId)
+	var user models.UserProfile
+	queryResult := data.DB.First(&user, "id = ?", reqId)
 	if queryResult.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
 	// Deletes user
-	var err error = DB.Delete(&user).Error
+	var err error = data.DB.Delete(&user).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete User"})
 		return
@@ -138,7 +140,7 @@ func createPost(c *gin.Context) {
 
 	userId := uint(userIdFloat)
 
-	var payload Post
+	var payload models.Post
 	var err error = c.ShouldBindJSON(&payload)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
@@ -151,12 +153,12 @@ func createPost(c *gin.Context) {
 	}
 
 	// Creates new post
-	post := Post{
+	post := models.Post{
 		Content:       payload.Content,
 		UserProfileID: userId,
 	}
 
-	err = DB.Create(&post).Error
+	err = data.DB.Create(&post).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create Post"})
 		return
@@ -174,8 +176,8 @@ func getPost(c *gin.Context) {
 	}
 
 	// Query user from database
-	var p Post
-	queryResult := DB.First(&p, "id = ?", reqId)
+	var p models.Post
+	queryResult := data.DB.First(&p, "id = ?", reqId)
 	if queryResult.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
 		return
@@ -205,8 +207,8 @@ func deletePost(c *gin.Context) {
 	}
 
 	// Queries database
-	var p Post
-	queryResult := DB.First(&p, "id = ?", postId)
+	var p models.Post
+	queryResult := data.DB.First(&p, "id = ?", postId)
 	if queryResult.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
 		return
@@ -219,7 +221,7 @@ func deletePost(c *gin.Context) {
 	}
 
 	// Deletes post
-	var err error = DB.Delete(&p).Error
+	var err error = data.DB.Delete(&p).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete Post"})
 		return
@@ -250,7 +252,7 @@ func createComment(c *gin.Context) {
 	}
 
 	// Handling JSON for Comment
-	var payload Comment
+	var payload models.Comment
 	err = c.ShouldBindJSON(&payload)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
@@ -263,13 +265,13 @@ func createComment(c *gin.Context) {
 	}
 
 	// Creates new Comment
-	comment := Comment{
+	comment := models.Comment{
 		Content:       payload.Content,
 		PostID:        uint(postID),
 		UserProfileID: userId,
 	}
 
-	err = DB.Create(&comment).Error
+	err = data.DB.Create(&comment).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create Comment"})
 		return
@@ -304,8 +306,8 @@ func getComment(c *gin.Context) {
 	}
 
 	// Queries
-	var comment Comment
-	queryResult := DB.First(&comment, "id = ?", commentId)
+	var comment models.Comment
+	queryResult := data.DB.First(&comment, "id = ?", commentId)
 	if queryResult.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
 		return
@@ -326,8 +328,8 @@ func getCommentsAll(c *gin.Context) {
 	}
 
 	// Queries database
-	var allComments []Comment
-	queryResult := DB.Where("post_id = ?", postID).Find(&allComments)
+	var allComments []models.Comment
+	queryResult := data.DB.Where("post_id = ?", postID).Find(&allComments)
 	if queryResult.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch all Comments"})
 		return
@@ -358,8 +360,8 @@ func deleteComment(c *gin.Context) {
 	}
 
 	// Queries database
-	var comment Comment
-	queryResult := DB.First(&comment, "id = ?", commentId)
+	var comment models.Comment
+	queryResult := data.DB.First(&comment, "id = ?", commentId)
 	if queryResult.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
 		return
@@ -372,7 +374,7 @@ func deleteComment(c *gin.Context) {
 	}
 
 	// Deletes comment
-	queryResult = DB.Delete(&comment)
+	queryResult = data.DB.Delete(&comment)
 	if queryResult.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete Comment"})
 		return
