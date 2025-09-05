@@ -130,31 +130,13 @@ func createPost(c *gin.Context) {
 
 	// Gets id set in JWT token
 	claims := jwt.ExtractClaims(c)
-	idRaw, ok := claims["id"]
+	userIdFloat, ok := claims["id"].(float64)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized 1"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	// Convert to uint (because your DB expects uint)
-	var userId uint
-	switch v := idRaw.(type) {
-	case float64:
-		userId = uint(v)
-
-	case string:
-		parsed, err := strconv.ParseUint(v, 10, 64)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized 2"})
-			return
-		}
-
-		userId = uint(parsed)
-
-	default:
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized 3"})
-		return
-	}
+	userId := uint(userIdFloat)
 
 	var payload Post
 	var err error = c.ShouldBindJSON(&payload)
@@ -185,7 +167,7 @@ func createPost(c *gin.Context) {
 
 // Gets a post
 func getPost(c *gin.Context) {
-	reqId := c.Param("id")
+	reqId := c.Param("pid")
 	if reqId == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing Post ID"})
 		return
@@ -204,21 +186,39 @@ func getPost(c *gin.Context) {
 
 // Deletes Post
 func deletePost(c *gin.Context) {
-	reqId := c.Param("id")
-	if reqId == "" {
+
+	// Gets id set in JWT token
+	claims := jwt.ExtractClaims(c)
+	userIdFloat, ok := claims["id"].(float64)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	userId := uint(userIdFloat)
+
+	// Retrieves Post ID
+	postId := c.Param("pid")
+	if postId == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing Post ID"})
 		return
 	}
 
-	// Query user from database
+	// Queries database
 	var p Post
-	queryResult := DB.First(&p, "id = ?", reqId)
+	queryResult := DB.First(&p, "id = ?", postId)
 	if queryResult.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
 		return
 	}
 
-	// Deletes user
+	// Authenticate that this user is the author of this post
+	if p.UserProfileID != userId {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You are not the author of this post"})
+		return
+	}
+
+	// Deletes post
 	var err error = DB.Delete(&p).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete Post"})
@@ -226,4 +226,157 @@ func deletePost(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Deleted Successfully"})
+}
+
+// Creates a comment
+func createComment(c *gin.Context) {
+
+	// Gets id set in JWT token
+	claims := jwt.ExtractClaims(c)
+	userIdFloat, ok := claims["id"].(float64)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	userId := uint(userIdFloat)
+
+	// Retrieving and Casting Post ID to uint
+	postIdStr := c.Param("pid")
+	postID, err := strconv.Atoi(postIdStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing Post ID"})
+		return
+	}
+
+	// Handling JSON for Comment
+	var payload Comment
+	err = c.ShouldBindJSON(&payload)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+		return
+	}
+
+	if payload.Content == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Comment cannot be empty"})
+		return
+	}
+
+	// Creates new Comment
+	comment := Comment{
+		Content:       payload.Content,
+		PostID:        uint(postID),
+		UserProfileID: userId,
+	}
+
+	err = DB.Create(&comment).Error
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create Comment"})
+		return
+	}
+
+	c.JSON(http.StatusOK, comment)
+}
+
+// Gets a comment
+func getComment(c *gin.Context) {
+
+	/*
+
+		// Is this part really necessary??
+
+		// Retrieving Post ID
+		postIdStr := c.Param("pid")
+		postID, err := strconv.Atoi(postIdStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing Post ID"})
+			return
+		}
+
+	*/
+
+	// Retrieving Comment ID
+	commentIdStr := c.Param("cid")
+	commentId, err := strconv.Atoi(commentIdStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing Post ID"})
+		return
+	}
+
+	// Queries
+	var comment Comment
+	queryResult := DB.First(&comment, "id = ?", commentId)
+	if queryResult.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, comment)
+}
+
+// Gets all comments
+func getCommentsAll(c *gin.Context) {
+
+	// Retrieving and Casting Post ID to uint
+	postIdStr := c.Param("pid")
+	postID, err := strconv.Atoi(postIdStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing Post ID"})
+		return
+	}
+
+	// Queries database
+	var allComments []Comment
+	queryResult := DB.Where("post_id = ?", postID).Find(&allComments)
+	if queryResult.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch all Comments"})
+		return
+	}
+
+	c.JSON(http.StatusOK, allComments)
+}
+
+// Deletes a comment
+func deleteComment(c *gin.Context) {
+
+	// Gets id set in JWT token
+	claims := jwt.ExtractClaims(c)
+	userIdFloat, ok := claims["id"].(float64)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	userId := uint(userIdFloat)
+
+	// Retrieving Comment ID
+	commentIdStr := c.Param("cid")
+	commentId, err := strconv.Atoi(commentIdStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing Post ID"})
+		return
+	}
+
+	// Queries database
+	var comment Comment
+	queryResult := DB.First(&comment, "id = ?", commentId)
+	if queryResult.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
+		return
+	}
+
+	// Authenticate that this user is the author of this comment
+	if comment.UserProfileID != userId {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You are not the author of this comment"})
+		return
+	}
+
+	// Deletes comment
+	queryResult = DB.Delete(&comment)
+	if queryResult.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete Comment"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Deleted Successfully!"})
 }

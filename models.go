@@ -26,6 +26,6 @@ type Comment struct {
 	ID            uint      `gorm:"primaryKey"     json:"id"`
 	Content       string    `gorm:"not null"       json:"content"`
 	CommentedAt   time.Time `gorm:"autoCreateTime" json:"commented_at"`
-	UserProfileID uint      `gorm:"not null;index" json:"user_id"`
 	PostID        uint      `gorm:"not null;index" json:"post_id"`
+	UserProfileID uint      `gorm:"not null;index" json:"user_id"`
 }

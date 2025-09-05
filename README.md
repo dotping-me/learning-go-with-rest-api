@@ -31,12 +31,17 @@ Follow these steps to get your development environment set up and operational:
    go mod tidy
    ```
 
-3. **Run GO API**
+3. **Setup Database**
+   ```bash
+   psql -U postgres -f "./setup.sql"
+   ```
+
+4. **Run GO API**
    ```bash
    go run .
    ```
 
-4. **Test Routes** (Use `curl`, Postman or any alternatives)
+5. **Test Routes** (Use `curl`, Postman or any alternatives)
    1. Register a user through a `POST` request on `/user`
    2. Login using credentials on `/login`
       1. Copy generated token
