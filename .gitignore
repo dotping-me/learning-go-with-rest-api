@@ -1,2 +1,2 @@
 .env
-xyz.db
+*_templ.go
