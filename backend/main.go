@@ -9,11 +9,10 @@ package main
 import (
 	"log"
 
-	"github.com/dotping-me/learning-go-with-rest-api/api"
-	"github.com/dotping-me/learning-go-with-rest-api/api/middleware"
-	"github.com/dotping-me/learning-go-with-rest-api/configs"
-	"github.com/dotping-me/learning-go-with-rest-api/data"
-	"github.com/dotping-me/learning-go-with-rest-api/web"
+	"github.com/dotping-me/learning-go-with-rest-api/backend/api"
+	"github.com/dotping-me/learning-go-with-rest-api/backend/api/middleware"
+	"github.com/dotping-me/learning-go-with-rest-api/backend/configs"
+	"github.com/dotping-me/learning-go-with-rest-api/backend/data"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,11 +32,7 @@ func main() {
 
 	// Register routes
 	api.RegisterAPIRoutes(router, jwtMiddleware) // API
-
-	// Loads Resources
-	router.LoadHTMLGlob("./web/templates/*")
-	router.Static("/static", "./web/static")
-	web.RegisterWebRoutes(router) // Web
+	api.RegisterWebRoutes(router, jwtMiddleware)
 
 	router.Run(":" + cfg.Port) // Runs Server
 }

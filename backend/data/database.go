@@ -10,7 +10,7 @@ package data
 import (
 	"log"
 
-	"github.com/dotping-me/learning-go-with-rest-api/models"
+	"github.com/dotping-me/learning-go-with-rest-api/backend/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

@@ -12,8 +12,8 @@ import (
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
-	"github.com/dotping-me/learning-go-with-rest-api/data"
-	"github.com/dotping-me/learning-go-with-rest-api/models"
+	"github.com/dotping-me/learning-go-with-rest-api/backend/data"
+	"github.com/dotping-me/learning-go-with-rest-api/backend/models"
 	"github.com/gin-gonic/gin"
 )
 

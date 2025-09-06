@@ -13,6 +13,12 @@ This project also uses a Flat Project Structure to minimise complexity for now. 
 - **Go 1.22+**  
 [Install Go Here!](https://golang.org/dl/)
 
+- **Go Templ**  
+   ```bash
+   go install github.com/a-h/templ/cmd/templ@latest
+   go get github.com/a-h/templ
+   ```
+
 - **PostgreSQL**  
 [Install PostgreSQL Here!](https://www.postgresql.org/download/)
 
@@ -36,12 +42,17 @@ Follow these steps to get your development environment set up and operational:
    psql -U postgres -f "./setup.sql"
    ```
 
-4. **Run GO API**
+4. **Build Templates**
    ```bash
-   go run .
+   templ generate
    ```
 
-5. **Test Routes** (Use `curl`, Postman or any alternatives)
+5. **Run GO App**
+   ```bash
+   go run ./backend
+   ```
+
+6. **Test Routes** (Use `curl`, Postman or any alternatives)
    1. Register a user through a `POST` request on `/user`
    2. Login using credentials on `/login`
       1. Copy generated token

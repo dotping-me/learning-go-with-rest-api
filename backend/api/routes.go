@@ -39,3 +39,7 @@ func RegisterAPIRoutes(router *gin.Engine, jwtMiddleware *jwt.GinJWTMiddleware) 
 		auth.DELETE("/posts/:pid/comments/:cid", deleteComment)
 	}
 }
+
+func RegisterWebRoutes(router *gin.Engine, jwtMiddleware *jwt.GinJWTMiddleware) {
+	router.GET("/", HomePage)
+}

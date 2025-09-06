@@ -5,10 +5,13 @@ import (
 	"strconv"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
-	"github.com/dotping-me/learning-go-with-rest-api/data"
-	"github.com/dotping-me/learning-go-with-rest-api/models"
+	"github.com/dotping-me/learning-go-with-rest-api/backend/data"
+	"github.com/dotping-me/learning-go-with-rest-api/backend/models"
+	"github.com/dotping-me/learning-go-with-rest-api/frontend/templates"
 	"github.com/gin-gonic/gin"
 )
+
+// ----------------- API Handlers -----------------
 
 // Registers a new user
 func registerUserProfile(c *gin.Context) {
@@ -381,4 +384,11 @@ func deleteComment(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Deleted Successfully!"})
+}
+
+// ----------------- Web Handlers -----------------
+
+// Returns home page template
+func HomePage(c *gin.Context) {
+	templates.Main("World!").Render(c, c.Writer)
 }
