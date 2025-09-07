@@ -3,7 +3,7 @@ The aim of this project is to learn GoLang by building a simple REST API.
 
 ## 📚 Resources
 This project used the videos below as base foundation:  
-- [Building a GO API - No External Packages! by Alex Mux](https://www.youtube.com/watch?v=9bRMLKBbFMQ)
+- [Building a GO API - No External Packages!](https://www.youtube.com/watch?v=9bRMLKBbFMQ)
 - [Complete Backend Engineering Course in Go](https://www.youtube.com/watch?v=h3fqD6IprIA)
 
 This project also uses a Flat Project Structure to minimise complexity for now. Read more on GO Project Structures here:  
@@ -21,6 +21,18 @@ This project also uses a Flat Project Structure to minimise complexity for now. 
 
 - **PostgreSQL**  
 [Install PostgreSQL Here!](https://www.postgresql.org/download/)
+
+## Tech Stack
+Using the **GOAT** tech stack. Watch this video to learn more about it:
+[GOAT Stack: Build Fast, Scalable Apps with Go, templ, Alpine.js, and Tailwind](https://www.youtube.com/watch?v=cgPAkEcd2KM)
+
+Tech Stack| &nbsp;
+--- | ---
+Backend | Go
+Frontend | Go Templ
+&nbsp; | AlpineJS
+&nbsp; | Tailwind
+Database | PostgreSQL
 
 ## 💻 Setup & Usage
 Follow these steps to get your development environment set up and operational:  
