@@ -88,8 +88,11 @@ templ Login() {
                             this.success = "Logged In Successfully";
 
                             // Saves JWT token
+                            console.log(data);
+
                             if (data.token) {
                                 localStorage.setItem("jwt", data.token);
+                                localStorage.setItem("user", this.uname);
                                 window.location.href = "/";
                             }
                         }

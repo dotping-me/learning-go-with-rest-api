@@ -1,7 +1,7 @@
 package templates
 
-templ Home() {
-    <div class="container mx-auto p-8">
-        <h1 class="text-3xl font-bold mb-4">Hello World!</h1>
+templ Home(username string) {
+    <div class="container mx-auto p-8 h-full">
+        <h1 id="hello" class="text-3xl font-bold mb-4">Hello { username }!</h1>
     </div>
 }

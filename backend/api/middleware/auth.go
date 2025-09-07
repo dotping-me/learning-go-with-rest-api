@@ -55,6 +55,7 @@ func InitJWT(secret string) *jwt.GinJWTMiddleware {
 				return nil, jwt.ErrFailedAuthentication
 			}
 
+			c.SetCookie("username", user.Username, 3600, "/", "", false, true)
 			return &user, nil
 		},
 
@@ -62,11 +63,34 @@ func InitJWT(secret string) *jwt.GinJWTMiddleware {
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
 			if user, ok := data.(*models.UserProfile); ok {
 				return jwt.MapClaims{
-					"id": user.ID, // Successful
+					"id":       user.ID, // Successful
+					"username": user.Username,
 				}
 			}
 
 			return jwt.MapClaims{} // Failed
+		},
+
+		// Customizes response when loging in
+		LoginResponse: func(c *gin.Context, code int, token string, expire time.Time) {
+			username, err := c.Cookie("username")
+
+			// Fallback
+			if err != nil || username == "" {
+				c.JSON(http.StatusOK, gin.H{
+					"code":   code,
+					"token":  token,
+					"expire": expire.Format(time.RFC3339),
+				})
+				return
+			}
+
+			c.JSON(http.StatusOK, gin.H{
+				"code":     code,
+				"token":    token,
+				"expire":   expire.Format(time.RFC3339),
+				"username": username,
+			})
 		},
 
 		// What happens if user tries to access a page without being logged in
@@ -80,10 +104,21 @@ func InitJWT(secret string) *jwt.GinJWTMiddleware {
 
 		IdentityHandler: func(c *gin.Context) interface{} {
 			claims := jwt.ExtractClaims(c)
-			if id, ok := claims["id"].(float64); ok {
-				return uint(id)
+
+			username, ok := claims["username"].(string)
+			if !ok {
+				return nil
 			}
-			return nil
+
+			id, ok := claims["id"].(float64)
+			if !ok {
+				return nil
+			}
+
+			return &models.UserProfile{
+				ID:       uint(id),
+				Username: username,
+			}
 		},
 	})
 

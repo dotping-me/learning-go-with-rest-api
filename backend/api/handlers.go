@@ -388,10 +388,18 @@ func deleteComment(c *gin.Context) {
 
 // ----------------- Web Handlers -----------------
 
+// Helper function to get username from Cookie or JWT token
+
 // Returns home page template
 func HomePage(c *gin.Context) {
-	home := templates.Home()
-	templates.Main("Home", home).Render(c, c.Writer)
+	username := "Guest" // Default value
+
+	if u, err := c.Cookie("username"); err == nil && u != "" {
+		username = u
+	}
+
+	home := templates.Home(username)
+	templates.Main("Home", home).Render(c.Request.Context(), c.Writer)
 }
 
 // Returns login page template
