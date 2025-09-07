@@ -32,7 +32,9 @@ func main() {
 
 	// Register routes
 	api.RegisterAPIRoutes(router, jwtMiddleware) // API
-	api.RegisterWebRoutes(router, jwtMiddleware)
+
+	router.Static("/static", "./frontend/static")
+	api.RegisterWebRoutes(router, jwtMiddleware) // Web
 
 	router.Run(":" + cfg.Port) // Runs Server
 }

@@ -42,4 +42,5 @@ func RegisterAPIRoutes(router *gin.Engine, jwtMiddleware *jwt.GinJWTMiddleware) 
 
 func RegisterWebRoutes(router *gin.Engine, jwtMiddleware *jwt.GinJWTMiddleware) {
 	router.GET("/", HomePage)
+	router.GET("/login", LoginPage)
 }

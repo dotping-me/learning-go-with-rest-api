@@ -9,6 +9,7 @@ package middleware
 
 import (
 	"log"
+	"net/http"
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
@@ -68,9 +69,13 @@ func InitJWT(secret string) *jwt.GinJWTMiddleware {
 			return jwt.MapClaims{} // Failed
 		},
 
-		// Unautherized
+		// What happens if user tries to access a page without being logged in
 		Unauthorized: func(c *gin.Context, code int, message string) {
-			c.JSON(code, gin.H{"error": message})
+			if c.ContentType() == "application/json" {
+				c.JSON(code, gin.H{"error": message})
+			} else {
+				c.Redirect(http.StatusFound, "/login")
+			}
 		},
 
 		IdentityHandler: func(c *gin.Context) interface{} {

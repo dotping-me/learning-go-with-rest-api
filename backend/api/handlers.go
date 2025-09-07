@@ -390,5 +390,12 @@ func deleteComment(c *gin.Context) {
 
 // Returns home page template
 func HomePage(c *gin.Context) {
-	templates.Main("World!").Render(c, c.Writer)
+	home := templates.Home()
+	templates.Main("Home", home).Render(c, c.Writer)
+}
+
+// Returns login page template
+func LoginPage(c *gin.Context) {
+	login := templates.Login()
+	templates.Main("Log In", login).Render(c, c.Writer)
 }
