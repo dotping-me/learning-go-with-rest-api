@@ -9,18 +9,19 @@ package api
 
 import (
 	jwt "github.com/appleboy/gin-jwt/v2"
+	"github.com/dotping-me/learning-go-with-rest-api/backend/api/middleware"
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterAPIRoutes(router *gin.Engine, jwtMiddleware *jwt.GinJWTMiddleware) {
+func RegisterAPIRoutes(router *gin.Engine, mw *jwt.GinJWTMiddleware) {
 
 	// Unprotected routes
-	router.POST("api/v1/login", jwtMiddleware.LoginHandler) // JWT Token Interaction
+	router.POST("api/v1/login", mw.LoginHandler) // JWT Token Interaction
 	router.POST("api/v1/signup", registerUserProfile)
 
 	// Protected routes
 	auth := router.Group("/api/v1")
-	auth.Use(jwtMiddleware.MiddlewareFunc())
+	auth.Use(mw.MiddlewareFunc())
 	{
 		// User routes
 		auth.GET("/users/:id", getUserProfile)
@@ -40,12 +41,14 @@ func RegisterAPIRoutes(router *gin.Engine, jwtMiddleware *jwt.GinJWTMiddleware) 
 	}
 }
 
-func RegisterWebRoutes(router *gin.Engine, jwtMiddleware *jwt.GinJWTMiddleware) {
-	router.GET("/", HomePage)
+func RegisterWebRoutes(router *gin.Engine, mw *jwt.GinJWTMiddleware) {
+	router.Use(middleware.OptionalAuth(mw))
+
+	router.GET("/", HomePage(mw))
 	router.GET("/login", LoginPage)
 
 	auth := router.Group("/")
-	auth.Use(jwtMiddleware.MiddlewareFunc())
+	auth.Use(mw.MiddlewareFunc())
 	{
 		// ...
 	}

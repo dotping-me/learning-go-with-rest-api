@@ -391,15 +391,19 @@ func deleteComment(c *gin.Context) {
 // Helper function to get username from Cookie or JWT token
 
 // Returns home page template
-func HomePage(c *gin.Context) {
-	username := "Guest" // Default value
+func HomePage(jwtMiddleware *jwt.GinJWTMiddleware) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		username := "Guest" // Default value
 
-	if u, err := c.Cookie("username"); err == nil && u != "" {
-		username = u
+		if u, exists := c.Get("username"); exists {
+			if uStr, ok := u.(string); ok {
+				username = uStr
+			}
+		}
+
+		home := templates.Home(username)
+		templates.Main("Home", home).Render(c.Request.Context(), c.Writer)
 	}
-
-	home := templates.Home(username)
-	templates.Main("Home", home).Render(c.Request.Context(), c.Writer)
 }
 
 // Returns login page template

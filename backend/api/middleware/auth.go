@@ -73,6 +73,7 @@ func InitJWT(secret string) *jwt.GinJWTMiddleware {
 
 		// Customizes response when loging in
 		LoginResponse: func(c *gin.Context, code int, token string, expire time.Time) {
+			c.SetCookie("jwt", token, 0, "/", "", true, true)
 			username, err := c.Cookie("username")
 
 			// Fallback
@@ -127,4 +128,27 @@ func InitJWT(secret string) *jwt.GinJWTMiddleware {
 	}
 
 	return jwtMiddleware
+}
+
+// For pages that can be accessed by unregistered users and
+// registered users but customized for the later
+func OptionalAuth(mw *jwt.GinJWTMiddleware) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token, err := c.Cookie("jwt")
+		if err != nil || token == "" {
+			// Username stays as "Guest"
+		}
+
+		tokenObj, err := mw.ParseTokenString(token)
+		if err != nil {
+			// Username stays as "Guest"
+		}
+
+		claims := jwt.ExtractClaimsFromToken(tokenObj)
+		if username, ok := claims["username"].(string); ok && username != "" {
+			c.Set("username", username)
+		}
+
+		c.Next()
+	}
 }
