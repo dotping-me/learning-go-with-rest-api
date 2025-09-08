@@ -1,0 +1,78 @@
+package templates
+
+templ AnimatedBackground() {
+    <div class="fixed inset-0 h-screen w-full overflow-hidden pointer-events-none"
+         x-data="animatedBackground(20, 50)">
+        
+        // Shapes
+        <template x-for="(shape, index) in shapes" :key="'shape-' + index">
+            <div 
+                class="floating-shapes absolute blur-xl"
+                :class="shape.color + ' ' + shape.shape"
+                :style="`
+                    top: ${shape.top}vh;
+                    left: ${shape.left}%;
+                    width: ${shape.size}px;
+                    height: ${shape.size}px;
+                    animation-delay: ${shape.animationDelay}s;
+                `">
+            </div>
+        </template>
+
+        // Particles
+        <template x-for="(particle, index) in particles" :key="'particle-' + index">
+            <div 
+                class="particle absolute bg-white/30 rounded-full"
+                :style="`
+                    top: ${particle.top}vh;
+                    left: ${particle.left}%;
+                    width: ${particle.size}px;
+                    height: ${particle.size}px;
+                    animation-delay: ${particle.animationDelay}s;
+                    animation-duration: ${particle.animationDuration}s;
+                `">
+            </div>
+        </template>
+    </div>
+
+    <script>
+        function animatedBackground(shapeCount = 15, particleCount = 30) {
+            return {
+                shapes: [],
+                particles: [],
+                init() {
+                    this.generateShapes(shapeCount);
+                    this.generateParticles(particleCount);
+                },
+                generateShapes(count) {
+                    const colors = [
+                        'bg-gradient-to-r from-purple-500/30 to-pink-500/30',
+                        'bg-gradient-to-r from-blue-500/30 to-cyan-500/30',
+                        'bg-gradient-to-r from-green-500/30 to-emerald-500/30',
+                        'bg-gradient-to-r from-yellow-500/30 to-orange-500/30'
+                    ];
+                    
+                    const shapes = ['rounded-full', 'rounded-lg'];
+                    
+                    this.shapes = Array.from({ length: count }, () => ({
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        shape: shapes[Math.floor(Math.random() * shapes.length)],
+                        top: Math.floor(Math.random() * 200) - 10,
+                        left: Math.floor(Math.random() * 90) + 5,
+                        size: Math.floor(Math.random() * 40) + 20,
+                        animationDelay: Math.random() * 8
+                    }));
+                },
+                generateParticles(count) {
+                    this.particles = Array.from({ length: count }, () => ({
+                        top: Math.floor(Math.random() * 100),
+                        left: Math.floor(Math.random() * 100),
+                        size: Math.floor(Math.random() * 4) + 1, // 1px to 5px
+                        animationDelay: Math.random() * 10,
+                        animationDuration: Math.random() * 8 + 4 // 4s to 12s
+                    }));
+                }
+            }
+        }
+    </script>
+}
