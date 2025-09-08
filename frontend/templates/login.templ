@@ -2,9 +2,9 @@ package templates
 
 templ Login() {
     <div class="flex min-h-full flex-col justify-center px-6 py-20 lg:px-8" x-data="loginForm()">
-        <div class="sm:mx-auto sm:w-full sm:max-w-sm">
-            <img src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500" alt="Your Company" class="mx-auto h-10 w-auto" />
-            <h2 class="mt-10 text-center text-2xl/9 font-bold tracking-tight text-white">Log in to your account</h2>
+        <div class="sm:mx-auto sm:w-full sm:max-w-sm text-center flex flex-col justify-center items-center">
+            @Logo()
+            <h2 class="mt-4 text-center text-2xl/9 font-bold tracking-tight text-white">Log in to your account</h2>
         </div>
 
         <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
@@ -46,7 +46,7 @@ templ Login() {
 
             <p class="mt-10 text-center text-sm/6 text-gray-400">
             Not a member yet?
-            <a href="#" class="font-semibold text-indigo-400 hover:text-indigo-300">Create your account here!</a>
+            <a href="/signup" class="font-semibold text-indigo-400 hover:text-indigo-300">Create your account here!</a>
             </p>
         </div>
     </div>
