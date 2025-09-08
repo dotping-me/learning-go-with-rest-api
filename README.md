@@ -9,6 +9,13 @@ This project used the videos below as base foundation:
 This project also uses a Flat Project Structure to minimise complexity for now. Read more on GO Project Structures here:  
 [Go - The Ultimate Folder Structure](https://dev.to/ayoubzulfiqar/go-the-ultimate-folder-structure-6gj)
 
+**Other Useful Resources:**  
+- [JWT Authentication in Go: A Step-by-Step Guide](https://partnerpens.hashnode.dev/jwt-authentication-in-go)
+- [Mastering Authentication: A Comprehensive Guide to Session-Based and JWT-Based Authentication in Golang](https://medium.com/@hasbrovish95/mastering-authentication-a-comprehensive-guide-to-session-based-and-jwt-based-authentication-in-dbac83fe78cc)
+- [Go Web Examples -
+Sessions](https://gowebexamples.com/sessions/)
+- [Golang Project: Building a Secure Login Portal](https://www.youtube.com/watch?v=OmLdoEMcr_Y)
+
 ## ⚙ Prerequisites
 - **Go 1.22+**  
 [Install Go Here!](https://golang.org/dl/)

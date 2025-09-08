@@ -31,3 +31,8 @@ CREATE TABLE IF NOT EXISTS "comments" (
     user_profile_id INT       NOT NULL REFERENCES user_profiles(id),
     post_id         INT       NOT NULL REFERENCES posts(id) ON DELETE CASCADE
 );
+
+-- Indexing to speed up queries
+CREATE INDEX idx_posts_user_profile_id ON posts(user_profile_id);
+CREATE INDEX idx_comments_post_id ON comments(post_id);
+CREATE INDEX idx_comments_user_profile_id ON comments(user_profile_id);

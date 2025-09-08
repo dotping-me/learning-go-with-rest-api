@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/dotping-me/learning-go-with-rest-api/backend/data"
@@ -14,33 +15,49 @@ import (
 // ----------------- API Handlers -----------------
 
 // Registers a new user
-func registerUserProfile(c *gin.Context) {
-	var payload models.UserProfile
+func registerUserProfile(mw *jwt.GinJWTMiddleware) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var payload models.UserProfile
+		c.SetCookie("jwt", "", -1, "/", "", false, true) // Deletes any old cookies
 
-	// Reads JSON Body
-	var err error = c.ShouldBindJSON(&payload)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
-		return
+		// Reads JSON Body
+		var err error = c.ShouldBindJSON(&payload)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+			return
+		}
+
+		if payload.Username == "" || payload.Password == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "JSON Body missing some fields"})
+			return
+		}
+
+		// Makes new database entry
+		err = data.DB.Create(&models.UserProfile{
+			Username: payload.Username,
+			Password: payload.Password,
+		}).Error
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register User"})
+			return
+		}
+
+		newUser := models.UserProfile{
+			Username: payload.Username,
+			Password: payload.Password,
+		}
+
+		token, expire, _ := mw.TokenGenerator(&newUser)
+
+		c.SetCookie("jwt", token, 0, "/", "", false, true)
+		c.JSON(http.StatusOK, gin.H{
+			"message":  "User created",
+			"username": newUser.Username,
+			"token":    token,
+			"expire":   expire.Format(time.RFC3339),
+		})
 	}
-
-	if payload.Username == "" || payload.Password == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON Body missing some fields"})
-		return
-	}
-
-	// Makes new database entry
-	err = data.DB.Create(&models.UserProfile{
-		Username: payload.Username,
-		Password: payload.Password,
-	}).Error
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register User"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Registered Successfully"})
 }
 
 // Gets the profile of a user
@@ -187,6 +204,20 @@ func getPost(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, p)
+}
+
+// Gets all posts
+func getPostsAll(c *gin.Context) {
+
+	// Queries database
+	var AllPosts []models.Post
+	queryResult := data.DB.Find(&AllPosts)
+	if queryResult.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch all Posts"})
+		return
+	}
+
+	c.JSON(http.StatusOK, AllPosts)
 }
 
 // Deletes Post
@@ -393,7 +424,7 @@ func deleteComment(c *gin.Context) {
 // Returns home page template
 func HomePage(jwtMiddleware *jwt.GinJWTMiddleware) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		username := "Guest" // Default value
+		username := "" // Default value
 
 		if u, exists := c.Get("username"); exists {
 			if uStr, ok := u.(string); ok {
@@ -401,13 +432,28 @@ func HomePage(jwtMiddleware *jwt.GinJWTMiddleware) gin.HandlerFunc {
 			}
 		}
 
-		home := templates.Home(username)
-		templates.Main("Home", home).Render(c.Request.Context(), c.Writer)
+		// Gets all posts (Custom handler)
+
+		// Queries database (Joins UserProfileID with Username)
+		var AllPosts []models.Post
+		queryResult := data.DB.Preload("UserProfile").Order("posted_at DESC").Find(&AllPosts)
+		if queryResult.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch all Posts"})
+			return
+		}
+
+		home := templates.Home(AllPosts, username)
+		templates.Main("Home", username, "", home).Render(c.Request.Context(), c.Writer)
 	}
 }
 
 // Returns login page template
 func LoginPage(c *gin.Context) {
 	login := templates.Login()
-	templates.Main("Log In", login).Render(c, c.Writer)
+	templates.Main("Log In", "", "signup", login).Render(c, c.Writer)
+}
+
+func SignupPage(c *gin.Context) {
+	signup := templates.Signup()
+	templates.Main("Sign Up", "", "login", signup).Render(c, c.Writer)
 }

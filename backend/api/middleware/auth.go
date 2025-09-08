@@ -55,7 +55,6 @@ func InitJWT(secret string) *jwt.GinJWTMiddleware {
 				return nil, jwt.ErrFailedAuthentication
 			}
 
-			c.SetCookie("username", user.Username, 3600, "/", "", false, true)
 			return &user, nil
 		},
 
@@ -73,24 +72,12 @@ func InitJWT(secret string) *jwt.GinJWTMiddleware {
 
 		// Customizes response when loging in
 		LoginResponse: func(c *gin.Context, code int, token string, expire time.Time) {
-			c.SetCookie("jwt", token, 0, "/", "", true, true)
-			username, err := c.Cookie("username")
-
-			// Fallback
-			if err != nil || username == "" {
-				c.JSON(http.StatusOK, gin.H{
-					"code":   code,
-					"token":  token,
-					"expire": expire.Format(time.RFC3339),
-				})
-				return
-			}
+			c.SetCookie("jwt", token, 3600, "/", "", false, true)
 
 			c.JSON(http.StatusOK, gin.H{
-				"code":     code,
-				"token":    token,
-				"expire":   expire.Format(time.RFC3339),
-				"username": username,
+				"code":   code,
+				"token":  token,
+				"expire": expire.Format(time.RFC3339),
 			})
 		},
 

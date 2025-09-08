@@ -17,7 +17,7 @@ func RegisterAPIRoutes(router *gin.Engine, mw *jwt.GinJWTMiddleware) {
 
 	// Unprotected routes
 	router.POST("api/v1/login", mw.LoginHandler) // JWT Token Interaction
-	router.POST("api/v1/signup", registerUserProfile)
+	router.POST("api/v1/signup", registerUserProfile(mw))
 
 	// Protected routes
 	auth := router.Group("/api/v1")
@@ -31,6 +31,7 @@ func RegisterAPIRoutes(router *gin.Engine, mw *jwt.GinJWTMiddleware) {
 		// Post routes
 		auth.POST("/posts", createPost)
 		auth.GET("/posts/:pid", getPost)
+		auth.GET("/posts/all", getPostsAll)
 		auth.DELETE("/posts/:pid", deletePost)
 
 		// Comment routes
@@ -46,6 +47,7 @@ func RegisterWebRoutes(router *gin.Engine, mw *jwt.GinJWTMiddleware) {
 
 	router.GET("/", HomePage(mw))
 	router.GET("/login", LoginPage)
+	router.GET("/signup", SignupPage)
 
 	auth := router.Group("/")
 	auth.Use(mw.MiddlewareFunc())
