@@ -7,9 +7,10 @@ UI Component for Post Elements
 package templates
 
 import "github.com/dotping-me/learning-go-with-rest-api/backend/models"
+import "fmt"
 
 templ Post(p models.Post, username string) {
-    <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-6 transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-2xl">
+    <div id={"post-" + fmt.Sprint(p.ID)} class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-6 transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-2xl">
         <div class="flex flex-col">
             <p class="text-white/90 text-lg leading-relaxed whitespace-pre-line break-words mb-4 font-light">
                 { p.Content }
@@ -30,12 +31,49 @@ templ Post(p models.Post, username string) {
                         { p.PostedAt.Format("Jan 2, 2006 · 3:04 PM") }
                     </span>
                     if username == p.UserProfile.Username {
-                        <button class="bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-1 px-3 rounded-md transition-colors duration-200 focus:outline-none focus:ring-1 focus:ring-red-500">
+                        <button 
+                            class="text-white/40 text-xs font-mono bg-black/20 px-2 py-1 rounded hover:bg-red-800 transition-colors duration-200"
+                            x-init={"postId = '" + fmt.Sprint(p.ID) + "'"}
+                            x-data="deletePost()"
+                            x-on:click="deleteRequest"
+                        >
                             Delete
                         </button>
                     }
                 </div>
             </div>
         </div>
+
+        // AlpineJS to delete post
+        <script>
+            function deletePost() {
+                return {
+                    postId: "",
+                    async deleteRequest() {
+                        try {
+                            const token = localStorage.getItem("jwt");
+                            const res = await fetch(`api/v1/posts/${this.postId}`, {
+                                method: "DELETE",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "Authorization": "Bearer " + token
+                                },
+                            });
+
+                            if (res.ok) {
+                                document.getElementById(`post-${this.postId}`).remove();
+                            } else {
+                                // Failed
+                            }
+
+                        } catch(err) {
+                            // ...
+                        } finally {
+                            // ...
+                        }
+                    }
+                }
+            }
+        </script>
     </div>
 }

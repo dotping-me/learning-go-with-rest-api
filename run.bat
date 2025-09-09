@@ -1,22 +1,27 @@
 @echo off
+setlocal
 echo.
 
-echo [1] Cleanup^!
-go clean -cache
-go clean -modcache
-echo Cache cleaned
+REM Parameter --clean passed
+if "%~1"=="--clean" (
+    echo [Step] Cleanup^!
+    call go clean -cache
+    call go clean -modcache
+    echo Cache cleaned
+    echo.
+
+    echo [Step] Installing Dependencies^!
+    call go mod tidy
+    echo.
+)
+
+echo [Step] Compiling Templates^!
+del /s /q frontend\templates\*_templ.go >nul 2>&1 REM Delete old templates
+call templ generate ./frontend/templates -v
 echo.
 
-echo [2] Installing Dependencies^!
-go mod tidy
-echo.
-
-echo [3] Compiling Templates^!
-templ generate
-echo.
-
-echo [4] Building Binaries^!
-go build -o main.exe ./backend
+echo [Step] Building Binaries^!
+call go build -o main.exe ./backend
 if errorlevel 1 (
     echo Build failed^!
     pause
@@ -25,6 +30,8 @@ if errorlevel 1 (
 echo Binaries built successfully^!
 echo.
 
-echo [5] Running Server^!
+echo [Step] Running Server^!
 echo Starting main.exe...
 start "" main.exe
+
+endlocal

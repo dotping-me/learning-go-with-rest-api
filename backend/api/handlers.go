@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"net/http"
 	"strconv"
 	"time"
@@ -184,7 +185,24 @@ func createPost(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, post)
+	// Fetch newly created post from database with UserProfile joined
+	// TODO: Optimize later!
+	if err := data.DB.Preload("UserProfile").First(&post, post.ID).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch new Post"})
+		return
+	}
+
+	// Renders templ component here!
+	var buffer bytes.Buffer
+	if err := templates.Post(post, post.UserProfile.Username).Render(c.Request.Context(), &buffer); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to render Post"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"post": post,
+		"html": buffer.String(),
+	})
 }
 
 // Gets a post
