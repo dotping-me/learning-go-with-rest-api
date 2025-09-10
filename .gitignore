@@ -2,3 +2,6 @@
 *_templ.go
 tmp/
 main.exe
+
+# I don't know where this pops out from
+main.exe~ 

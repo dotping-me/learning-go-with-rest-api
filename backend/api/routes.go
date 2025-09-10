@@ -8,6 +8,8 @@ handler functions!
 package api
 
 import (
+	"net/http"
+
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/dotping-me/learning-go-with-rest-api/backend/api/middleware"
 	"github.com/gin-gonic/gin"
@@ -15,9 +17,13 @@ import (
 
 func RegisterAPIRoutes(router *gin.Engine, mw *jwt.GinJWTMiddleware) {
 
-	// Unprotected routes
-	router.POST("api/v1/login", mw.LoginHandler) // JWT Token Interaction
+	// Unprotected routes (JWT Token Interaction)
+	router.POST("api/v1/login", mw.LoginHandler)
 	router.POST("api/v1/signup", registerUserProfile(mw))
+	router.POST("/api/v1/logout", func(c *gin.Context) {
+		c.SetCookie("jwt", "", -1, "/", "", false, true)
+		c.JSON(http.StatusOK, gin.H{"message": "Logged out"})
+	})
 
 	// Protected routes
 	auth := router.Group("/api/v1")
@@ -44,8 +50,10 @@ func RegisterAPIRoutes(router *gin.Engine, mw *jwt.GinJWTMiddleware) {
 
 func RegisterWebRoutes(router *gin.Engine, mw *jwt.GinJWTMiddleware) {
 	router.Use(middleware.OptionalAuth(mw))
-
 	router.GET("/", HomePage(mw))
+	router.GET("/users/:username", AccountPage(mw))
+	router.GET("/about", AboutPage(mw))
+
 	router.GET("/login", LoginPage)
 	router.GET("/signup", SignupPage)
 

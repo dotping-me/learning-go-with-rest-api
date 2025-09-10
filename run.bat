@@ -17,7 +17,7 @@ if "%~1"=="--clean" (
 
 echo [Step] Compiling Templates^!
 del /s /q frontend\templates\*_templ.go >nul 2>&1 REM Delete old templates
-call templ generate ./frontend/templates -v
+call templ generate -v
 echo.
 
 echo [Step] Building Binaries^!

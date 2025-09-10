@@ -53,7 +53,7 @@ Follow these steps to get your development environment set up and operational:
 
 2. **Run Script** (On windows)
    ```bash
-   run.bat
+   run.bat --clean
    ```
 
 *On UNIX Systems:*

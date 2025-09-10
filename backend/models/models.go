@@ -11,7 +11,7 @@ import "time"
 type UserProfile struct {
 	ID           uint      `gorm:"primaryKey"     json:"id"`
 	Username     string    `gorm:"unique"         json:"username"`
-	Password     string    `                      json:"password"`
+	Password     string    `                      json:"password"` // Be careful of leaks here!
 	RegisteredAt time.Time `gorm:"autoCreateTime" json:"registed_at"`
 }
 

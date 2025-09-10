@@ -11,6 +11,7 @@ import (
 	"github.com/dotping-me/learning-go-with-rest-api/backend/models"
 	"github.com/dotping-me/learning-go-with-rest-api/frontend/templates"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // ----------------- API Handlers -----------------
@@ -33,22 +34,25 @@ func registerUserProfile(mw *jwt.GinJWTMiddleware) gin.HandlerFunc {
 			return
 		}
 
-		// Makes new database entry
-		err = data.DB.Create(&models.UserProfile{
-			Username: payload.Username,
-			Password: payload.Password,
-		}).Error
-
+		// Hashing password
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(payload.Password), bcrypt.DefaultCost)
 		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+			return
+		}
+
+		// Makes new database entry
+		newUser := models.UserProfile{
+			Username: payload.Username,
+			Password: string(hashedPassword),
+		}
+
+		if err := data.DB.Create(&newUser).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register User"})
 			return
 		}
 
-		newUser := models.UserProfile{
-			Username: payload.Username,
-			Password: payload.Password,
-		}
-
+		// Issues token with updated data
 		token, expire, _ := mw.TokenGenerator(&newUser)
 
 		c.SetCookie("jwt", token, 0, "/", "", false, true)
@@ -440,7 +444,7 @@ func deleteComment(c *gin.Context) {
 // Helper function to get username from Cookie or JWT token
 
 // Returns home page template
-func HomePage(jwtMiddleware *jwt.GinJWTMiddleware) gin.HandlerFunc {
+func HomePage(mw *jwt.GinJWTMiddleware) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		username := "" // Default value
 
@@ -462,6 +466,49 @@ func HomePage(jwtMiddleware *jwt.GinJWTMiddleware) gin.HandlerFunc {
 
 		home := templates.Home(AllPosts, username)
 		templates.Main("Home", username, "", home).Render(c.Request.Context(), c.Writer)
+	}
+}
+
+func AccountPage(mw *jwt.GinJWTMiddleware) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		loggedInUsername := "" // Default value
+
+		if u, exists := c.Get("username"); exists {
+			if uStr, ok := u.(string); ok {
+				loggedInUsername = uStr
+			}
+		}
+
+		// Gets the details of the account being looked up
+		// Query user from database
+		searchedAccountUsername := c.Param("username")
+
+		var user models.UserProfile
+		queryResult := data.DB.First(&user, "username = ?", searchedAccountUsername)
+		if queryResult.Error != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+
+		// Render template
+		account := templates.Account(user, loggedInUsername)
+		templates.Main("Account - "+user.Username, loggedInUsername, "", account).Render(c, c.Writer)
+	}
+}
+
+func AboutPage(mw *jwt.GinJWTMiddleware) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		loggedInUsername := "" // Default value
+
+		if u, exists := c.Get("username"); exists {
+			if uStr, ok := u.(string); ok {
+				loggedInUsername = uStr
+			}
+		}
+
+		// Render template
+		about := templates.About()
+		templates.Main("About", loggedInUsername, "", about).Render(c, c.Writer)
 	}
 }
 

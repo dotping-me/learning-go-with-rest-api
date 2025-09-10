@@ -16,6 +16,7 @@ import (
 	"github.com/dotping-me/learning-go-with-rest-api/backend/data"
 	"github.com/dotping-me/learning-go-with-rest-api/backend/models"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func InitJWT(secret string) *jwt.GinJWTMiddleware {
@@ -25,7 +26,7 @@ func InitJWT(secret string) *jwt.GinJWTMiddleware {
 		Timeout:       time.Hour,
 		MaxRefresh:    time.Hour,
 		IdentityKey:   "id",
-		TokenLookup:   "header: Authorization, query: token, cookie: jwt",
+		TokenLookup:   "header: Authorization",
 		TokenHeadName: "Bearer",
 		TimeFunc:      time.Now,
 
@@ -50,8 +51,9 @@ func InitJWT(secret string) *jwt.GinJWTMiddleware {
 				return nil, jwt.ErrFailedAuthentication
 			}
 
+			// Compares hash
 			// Passwords doesn't match
-			if login.Password != user.Password {
+			if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(login.Password)); err != nil {
 				return nil, jwt.ErrFailedAuthentication
 			}
 
